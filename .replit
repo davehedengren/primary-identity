@@ -1,0 +1,17 @@
+run = "python app.py"
+entrypoint = "app.py"
+
+[nix]
+channel = "stable-23_05"
+
+[env]
+PYTHONPATH = "${PYTHONPATH}:${REPL_HOME}"
+
+[deployment]
+run = ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT app:app"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+

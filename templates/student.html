@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Who Am I? - Identity Explorer{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<style>
+    .identity-item {
+        transition: all 0.2s ease;
+        cursor: grab;
+    }
+    .identity-item:active {
+        cursor: grabbing;
+    }
+    .identity-item.sortable-ghost {
+        opacity: 0.4;
+        background: #bae6fd;
+    }
+    .identity-item.sortable-chosen {
+        transform: scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    .rank-badge {
+        min-width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        border-radius: 50%;
+    }
+    .rank-1 { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; }
+    .rank-2 { background: linear-gradient(135deg, #94a3b8, #64748b); color: white; }
+    .rank-3 { background: linear-gradient(135deg, #d97706, #b45309); color: white; }
+    .rank-other { background: #e2e8f0; color: #475569; }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .float-animation {
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-soft {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    .pulse-soft {
+        animation: pulse-soft 2s ease-in-out infinite;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen py-8 px-4">
+    <div class="max-w-lg mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="text-6xl mb-4 float-animation">🌟</div>
+            <h1 class="text-4xl font-display font-bold text-sky-600 mb-2">Who Am I?</h1>
+            <p class="text-lg text-gray-600 font-medium">Discover what makes you, <em>you</em>!</p>
+        </div>
+        
+        <!-- Instructions Card -->
+        <div class="bg-white/80 backdrop-blur rounded-2xl card-shadow p-6 mb-6">
+            <h2 class="font-display text-xl text-coral-500 mb-3">How to Play:</h2>
+            <ol class="space-y-2 text-gray-700">
+                <li class="flex items-start gap-3">
+                    <span class="bg-sky-100 text-sky-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shrink-0">1</span>
+                    <span>Add all the ways you identify (son, daughter, student, friend, athlete...)</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="bg-gold-100 text-gold-500 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shrink-0">2</span>
+                    <span>Drag to reorder - put the <strong>most important</strong> at the top!</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="bg-coral-100 text-coral-500 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shrink-0">3</span>
+                    <span>Submit to see how the class ranked their identities!</span>
+                </li>
+            </ol>
+        </div>
+        
+        <!-- Add Identity Form -->
+        <div class="bg-white/80 backdrop-blur rounded-2xl card-shadow p-6 mb-6">
+            <h2 class="font-display text-xl text-sky-600 mb-4">Add Your Identities</h2>
+            <div class="flex gap-2">
+                <input 
+                    type="text" 
+                    id="identityInput" 
+                    placeholder="I am a..."
+                    class="flex-1 px-4 py-3 rounded-xl border-2 border-sky-200 focus:border-sky-400 focus:outline-none font-medium text-gray-700 placeholder-gray-400"
+                    maxlength="50"
+                >
+                <button 
+                    id="addBtn"
+                    class="px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl transition-all hover:scale-105 active:scale-95"
+                >
+                    Add
+                </button>
+            </div>
+            
+            <!-- Suggestions -->
+            <div class="mt-4">
+                <p class="text-sm text-gray-500 mb-2">Need ideas? Try these:</p>
+                <div class="flex flex-wrap gap-2">
+                    <button class="suggestion-btn px-3 py-1 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded-full text-sm font-medium transition-colors">son/daughter</button>
+                    <button class="suggestion-btn px-3 py-1 bg-gold-50 hover:bg-gold-100 text-gold-600 rounded-full text-sm font-medium transition-colors">student</button>
+                    <button class="suggestion-btn px-3 py-1 bg-coral-50 hover:bg-coral-100 text-coral-500 rounded-full text-sm font-medium transition-colors">friend</button>
+                    <button class="suggestion-btn px-3 py-1 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded-full text-sm font-medium transition-colors">sibling</button>
+                    <button class="suggestion-btn px-3 py-1 bg-gold-50 hover:bg-gold-100 text-gold-600 rounded-full text-sm font-medium transition-colors">athlete</button>
+                    <button class="suggestion-btn px-3 py-1 bg-gradient-to-r from-gold-200 to-coral-200 text-gray-700 rounded-full text-sm font-bold transition-colors pulse-soft">child of God</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Identity List -->
+        <div class="bg-white/80 backdrop-blur rounded-2xl card-shadow p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-display text-xl text-gold-500">My Identities</h2>
+                <span id="countBadge" class="bg-sky-100 text-sky-600 px-3 py-1 rounded-full text-sm font-bold">0 added</span>
+            </div>
+            
+            <div id="emptyState" class="text-center py-8 text-gray-400">
+                <div class="text-4xl mb-2">👆</div>
+                <p>Add your identities above to get started!</p>
+            </div>
+            
+            <ul id="identityList" class="space-y-2 hidden">
+                <!-- Items will be added here dynamically -->
+            </ul>
+            
+            <p id="dragHint" class="text-center text-sm text-gray-400 mt-4 hidden">
+                ↕️ Drag to reorder by importance
+            </p>
+        </div>
+        
+        <!-- Submit Button -->
+        <button 
+            id="submitBtn"
+            class="w-full py-4 bg-gradient-to-r from-coral-400 to-coral-500 hover:from-coral-500 hover:to-coral-600 text-white font-display font-bold text-xl rounded-2xl card-shadow transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            disabled
+        >
+            Submit My Rankings
+        </button>
+        
+        <p class="text-center text-gray-500 text-sm mt-4">
+            Your submission is anonymous 🔒
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const identities = [];
+    const identityInput = document.getElementById('identityInput');
+    const addBtn = document.getElementById('addBtn');
+    const identityList = document.getElementById('identityList');
+    const emptyState = document.getElementById('emptyState');
+    const dragHint = document.getElementById('dragHint');
+    const countBadge = document.getElementById('countBadge');
+    const submitBtn = document.getElementById('submitBtn');
+    const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+    
+    // Initialize Sortable
+    const sortable = new Sortable(identityList, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd: function() {
+            updateRanks();
+            updateIdentitiesArray();
+        }
+    });
+    
+    function addIdentity(text) {
+        const identity = text.trim();
+        if (!identity) return;
+        
+        // Check for duplicates (case insensitive)
+        if (identities.some(i => i.toLowerCase() === identity.toLowerCase())) {
+            alert('You already added that identity!');
+            return;
+        }
+        
+        identities.push(identity);
+        renderList();
+        identityInput.value = '';
+        identityInput.focus();
+    }
+    
+    function removeIdentity(index) {
+        identities.splice(index, 1);
+        renderList();
+    }
+    
+    function renderList() {
+        identityList.innerHTML = '';
+        
+        identities.forEach((identity, index) => {
+            const li = document.createElement('li');
+            li.className = 'identity-item flex items-center gap-3 bg-white rounded-xl p-3 border-2 border-gray-100 hover:border-sky-200';
+            li.dataset.index = index;
+            
+            const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other';
+            
+            li.innerHTML = `
+                <span class="rank-badge ${rankClass}">${index + 1}</span>
+                <span class="flex-1 font-semibold text-gray-700">${escapeHtml(identity)}</span>
+                <button class="remove-btn text-gray-400 hover:text-coral-500 p-1 transition-colors" data-index="${index}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+            
+            identityList.appendChild(li);
+        });
+        
+        // Update UI state
+        const hasItems = identities.length > 0;
+        emptyState.classList.toggle('hidden', hasItems);
+        identityList.classList.toggle('hidden', !hasItems);
+        dragHint.classList.toggle('hidden', identities.length < 2);
+        submitBtn.disabled = identities.length < 2;
+        countBadge.textContent = `${identities.length} added`;
+    }
+    
+    function updateRanks() {
+        const items = identityList.querySelectorAll('.identity-item');
+        items.forEach((item, index) => {
+            const badge = item.querySelector('.rank-badge');
+            badge.textContent = index + 1;
+            badge.className = 'rank-badge ' + (index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other');
+        });
+    }
+    
+    function updateIdentitiesArray() {
+        const items = identityList.querySelectorAll('.identity-item');
+        identities.length = 0;
+        items.forEach(item => {
+            const text = item.querySelector('.flex-1').textContent;
+            identities.push(text);
+        });
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Event listeners
+    addBtn.addEventListener('click', () => addIdentity(identityInput.value));
+    
+    identityInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addIdentity(identityInput.value);
+        }
+    });
+    
+    identityList.addEventListener('click', (e) => {
+        const removeBtn = e.target.closest('.remove-btn');
+        if (removeBtn) {
+            const index = parseInt(removeBtn.dataset.index);
+            removeIdentity(index);
+        }
+    });
+    
+    suggestionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            addIdentity(btn.textContent);
+        });
+    });
+    
+    submitBtn.addEventListener('click', async () => {
+        if (identities.length < 2) return;
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+        
+        try {
+            const response = await fetch('/api/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ identities }),
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.href = '/submitted';
+            } else {
+                alert('Error: ' + (data.error || 'Something went wrong'));
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit My Rankings';
+            }
+        } catch (error) {
+            alert('Error submitting. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit My Rankings';
+        }
+    });
+</script>
+{% endblock %}
+
