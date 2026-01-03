@@ -1,67 +1,47 @@
 {% extends "base.html" %}
 
-{% block title %}Thank You! - Who Am I?{% endblock %}
+{% block title %}Thank You{% endblock %}
 
 {% block head %}
 <style>
-    @keyframes bounce-in {
+    @keyframes checkmark {
         0% { transform: scale(0); opacity: 0; }
-        50% { transform: scale(1.2); }
+        50% { transform: scale(1.1); }
         100% { transform: scale(1); opacity: 1; }
     }
-    .bounce-in {
-        animation: bounce-in 0.6s ease-out forwards;
-    }
-    @keyframes confetti {
-        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-    }
-    .confetti {
-        position: fixed;
-        top: -10px;
-        animation: confetti 3s linear forwards;
+    .checkmark {
+        animation: checkmark 0.4s ease-out forwards;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center py-8 px-4">
-    <div class="text-center max-w-md">
-        <div class="text-8xl mb-6 bounce-in">🎉</div>
-        <h1 class="font-display text-4xl text-sky-600 mb-4 bounce-in" style="animation-delay: 0.2s;">Thank You!</h1>
-        <p class="text-xl text-gray-600 mb-8 bounce-in" style="animation-delay: 0.4s;">
-            Your identity ranking has been submitted. Your teacher will share the class results soon!
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="text-center max-w-sm">
+        <!-- Checkmark -->
+        <div class="checkmark w-16 h-16 mx-auto mb-6 rounded-full bg-green-500 flex items-center justify-center">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        
+        <h1 class="text-2xl font-semibold text-apple-gray-900 mb-2">Thank You</h1>
+        <p class="text-apple-gray-400 text-base mb-8">
+            Your response has been submitted.
         </p>
         
-        <div class="bg-white/80 backdrop-blur rounded-2xl card-shadow p-6 mb-6 bounce-in" style="animation-delay: 0.6s;">
-            <p class="text-gray-700 font-medium">
-                Remember: You are wonderfully made with many identities, but the most important one is being a 
-                <span class="font-bold text-gold-500">child of God</span>! 💛
+        <div class="card p-5 mb-8 text-left">
+            <p class="text-apple-gray-600 text-sm leading-relaxed">
+                You have many wonderful identities. But remember — your most important identity is being a <span class="font-semibold text-apple-gray-900">child of God</span>.
             </p>
         </div>
         
         <a 
             href="/"
-            class="inline-block px-8 py-3 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl transition-all hover:scale-105 bounce-in"
-            style="animation-delay: 0.8s;"
+            class="btn-secondary inline-block px-6 py-3"
         >
-            Submit Another Response
+            Submit Another
         </a>
     </div>
 </div>
-
-<!-- Confetti -->
-<script>
-    const colors = ['#fbbf24', '#38bdf8', '#fb7185', '#a3e635', '#c084fc'];
-    for (let i = 0; i < 50; i++) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.left = Math.random() * 100 + 'vw';
-        confetti.style.animationDelay = Math.random() * 2 + 's';
-        confetti.style.fontSize = (Math.random() * 20 + 10) + 'px';
-        confetti.textContent = ['🌟', '✨', '💫', '⭐', '🎊'][Math.floor(Math.random() * 5)];
-        document.body.appendChild(confetti);
-    }
-</script>
 {% endblock %}
-

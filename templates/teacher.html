@@ -1,127 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %}Teacher Dashboard - Who Am I?{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-    .stat-card {
-        background: white;
-        border-radius: 1rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
     }
     .chart-container {
         position: relative;
-        height: 300px;
-    }
-    @media (min-width: 768px) {
-        .chart-container {
-            height: 350px;
-        }
+        height: 280px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen py-8 px-4">
-    <div class="max-w-6xl mx-auto">
+<div class="min-h-screen py-12 px-4">
+    <div class="max-w-5xl mx-auto">
         <!-- Header -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-                <h1 class="font-display text-3xl text-sky-600 mb-1">🍎 Teacher Dashboard</h1>
-                <p class="text-gray-600">View class identity rankings</p>
+                <h1 class="text-2xl font-semibold text-apple-gray-900 tracking-tight">Dashboard</h1>
+                <p class="text-apple-gray-400">Class identity rankings</p>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-2">
                 <button 
                     id="refreshBtn"
-                    class="px-4 py-2 bg-sky-100 hover:bg-sky-200 text-sky-700 font-semibold rounded-xl transition-colors"
+                    class="btn-secondary px-4 py-2 text-sm"
                 >
-                    🔄 Refresh
+                    Refresh
                 </button>
                 <button 
                     id="resetBtn"
-                    class="px-4 py-2 bg-coral-100 hover:bg-coral-200 text-coral-600 font-semibold rounded-xl transition-colors"
+                    class="px-4 py-2 text-sm font-medium text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                 >
-                    🗑️ Clear All Data
+                    Clear Data
                 </button>
             </div>
+        </header>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="card p-5">
+                <div class="stat-value text-apple-blue" id="totalSubmissions">—</div>
+                <div class="text-apple-gray-400 text-sm font-medium mt-1">Submissions</div>
+            </div>
+            <div class="card p-5">
+                <div class="stat-value text-apple-gray-900 text-xl" id="topIdentity">—</div>
+                <div class="text-apple-gray-400 text-sm font-medium mt-1">Most Common</div>
+            </div>
+            <div class="card p-5">
+                <div class="stat-value text-amber-500" id="godRank">—</div>
+                <div class="text-apple-gray-400 text-sm font-medium mt-1">"Child of God" Rank</div>
+            </div>
         </div>
         
-        <!-- Stats Row -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="stat-card">
-                <div class="text-3xl font-display font-bold text-sky-600" id="totalSubmissions">-</div>
-                <div class="text-gray-600 font-medium">Total Submissions</div>
-            </div>
-            <div class="stat-card">
-                <div class="text-3xl font-display font-bold text-gold-500" id="topIdentity">-</div>
-                <div class="text-gray-600 font-medium">Most Common Identity</div>
-            </div>
-            <div class="stat-card">
-                <div class="text-3xl font-display font-bold text-coral-500" id="godRank">-</div>
-                <div class="text-gray-600 font-medium">"Child of God" Avg. Rank</div>
-            </div>
-        </div>
-        
-        <!-- Charts Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Most Common Identities -->
-            <div class="bg-white/90 backdrop-blur rounded-2xl card-shadow p-6">
-                <h2 class="font-display text-xl text-sky-600 mb-4">Most Common Identities</h2>
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+            <div class="card p-5">
+                <h2 class="text-base font-semibold text-apple-gray-900 mb-4">Most Common</h2>
                 <div class="chart-container">
                     <canvas id="frequencyChart"></canvas>
                 </div>
             </div>
             
-            <!-- Importance Ranking -->
-            <div class="bg-white/90 backdrop-blur rounded-2xl card-shadow p-6">
-                <h2 class="font-display text-xl text-gold-500 mb-4">Most Important (by Avg. Rank)</h2>
+            <div class="card p-5">
+                <h2 class="text-base font-semibold text-apple-gray-900 mb-4">By Importance</h2>
                 <div class="chart-container">
                     <canvas id="importanceChart"></canvas>
                 </div>
             </div>
         </div>
         
-        <!-- Child of God Highlight -->
-        <div id="godHighlight" class="bg-gradient-to-r from-gold-100 to-coral-100 rounded-2xl card-shadow p-6 mb-8 hidden">
-            <div class="flex items-center gap-4">
-                <div class="text-5xl">✨</div>
-                <div>
-                    <h3 class="font-display text-2xl text-gray-800" id="godHighlightTitle">Child of God</h3>
-                    <p class="text-gray-600" id="godHighlightText">Loading...</p>
-                </div>
-            </div>
+        <!-- Highlight -->
+        <div id="godHighlight" class="card p-5 mb-8 border-l-4 border-amber-400 hidden">
+            <p class="text-apple-gray-600" id="godHighlightText">Loading...</p>
         </div>
         
-        <!-- Recent Submissions Table -->
-        <div class="bg-white/90 backdrop-blur rounded-2xl card-shadow p-6">
-            <h2 class="font-display text-xl text-coral-500 mb-4">Recent Submissions</h2>
+        <!-- Table -->
+        <div class="card p-5">
+            <h2 class="text-base font-semibold text-apple-gray-900 mb-4">Recent Submissions</h2>
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead>
-                        <tr class="border-b-2 border-gray-100">
-                            <th class="text-left py-3 px-4 font-semibold text-gray-600">#</th>
-                            <th class="text-left py-3 px-4 font-semibold text-gray-600">Time</th>
-                            <th class="text-left py-3 px-4 font-semibold text-gray-600">Identities (ranked)</th>
+                        <tr class="border-b border-apple-gray-100">
+                            <th class="text-left py-3 px-2 text-xs font-semibold text-apple-gray-400 uppercase tracking-wider">#</th>
+                            <th class="text-left py-3 px-2 text-xs font-semibold text-apple-gray-400 uppercase tracking-wider">Time</th>
+                            <th class="text-left py-3 px-2 text-xs font-semibold text-apple-gray-400 uppercase tracking-wider">Identities</th>
                         </tr>
                     </thead>
                     <tbody id="submissionsTable">
                         <tr>
-                            <td colspan="3" class="py-8 text-center text-gray-400">Loading...</td>
+                            <td colspan="3" class="py-10 text-center text-apple-gray-300">Loading...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
         
-        <!-- Class Link -->
+        <!-- Share Link -->
         <div class="mt-8 text-center">
-            <p class="text-gray-600 mb-2">Share this link with your class:</p>
-            <div class="inline-flex items-center gap-2 bg-white/80 rounded-xl px-4 py-2 card-shadow">
-                <code id="classLink" class="text-sky-600 font-mono">Loading...</code>
-                <button id="copyLink" class="text-gray-400 hover:text-sky-600 transition-colors">
-                    📋
+            <p class="text-apple-gray-400 text-sm mb-2">Student link</p>
+            <div class="inline-flex items-center gap-2 card px-4 py-2">
+                <code id="classLink" class="text-apple-blue text-sm font-mono">—</code>
+                <button id="copyLink" class="text-apple-gray-300 hover:text-apple-blue transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -133,11 +121,10 @@
 <script>
     let frequencyChart, importanceChart;
     
-    // Chart colors
-    const chartColors = [
-        '#38bdf8', '#fbbf24', '#fb7185', '#a3e635', '#c084fc',
-        '#2dd4bf', '#f472b6', '#60a5fa', '#facc15', '#4ade80'
-    ];
+    const chartColors = ['#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF3B30', '#5AC8FA', '#FFCC00', '#FF2D55'];
+    
+    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif";
+    Chart.defaults.color = '#8E8E93';
     
     async function loadData() {
         try {
@@ -160,64 +147,57 @@
         if (data.by_frequency.length > 0) {
             document.getElementById('topIdentity').textContent = capitalize(data.by_frequency[0][0]);
         } else {
-            document.getElementById('topIdentity').textContent = 'N/A';
+            document.getElementById('topIdentity').textContent = '—';
         }
         
         if (data.child_of_god) {
             document.getElementById('godRank').textContent = '#' + data.child_of_god.avg_rank.toFixed(1);
         } else {
-            document.getElementById('godRank').textContent = 'Not ranked yet';
+            document.getElementById('godRank').textContent = '—';
         }
     }
     
     function updateCharts(data) {
-        // Destroy existing charts
         if (frequencyChart) frequencyChart.destroy();
         if (importanceChart) importanceChart.destroy();
         
-        // Frequency Chart
         const freqCtx = document.getElementById('frequencyChart').getContext('2d');
         frequencyChart = new Chart(freqCtx, {
             type: 'bar',
             data: {
-                labels: data.by_frequency.map(([name]) => capitalize(name)),
+                labels: data.by_frequency.slice(0, 8).map(([name]) => capitalize(name)),
                 datasets: [{
-                    label: 'Times Mentioned',
-                    data: data.by_frequency.map(([_, count]) => count),
+                    data: data.by_frequency.slice(0, 8).map(([_, count]) => count),
                     backgroundColor: chartColors,
-                    borderRadius: 8,
+                    borderRadius: 6,
+                    barThickness: 24,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
+                    y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F5F5F7' } },
+                    x: { grid: { display: false } }
                 }
             }
         });
         
-        // Importance Chart (lower rank = more important, so we invert for visualization)
         const impCtx = document.getElementById('importanceChart').getContext('2d');
         const maxRank = Math.max(...data.by_importance.map(([_, rank]) => rank)) + 1;
         
         importanceChart = new Chart(impCtx, {
             type: 'bar',
             data: {
-                labels: data.by_importance.map(([name]) => capitalize(name)),
+                labels: data.by_importance.slice(0, 8).map(([name]) => capitalize(name)),
                 datasets: [{
-                    label: 'Importance Score',
-                    data: data.by_importance.map(([_, rank]) => (maxRank - rank).toFixed(2)),
-                    backgroundColor: data.by_importance.map(([name], i) => 
-                        name.toLowerCase().includes('god') ? '#fbbf24' : chartColors[i % chartColors.length]
+                    data: data.by_importance.slice(0, 8).map(([_, rank]) => (maxRank - rank).toFixed(2)),
+                    backgroundColor: data.by_importance.slice(0, 8).map(([name], i) => 
+                        name.toLowerCase().includes('god') ? '#FF9500' : chartColors[i % chartColors.length]
                     ),
-                    borderRadius: 8,
+                    borderRadius: 6,
+                    barThickness: 16,
                 }]
             },
             options: {
@@ -230,16 +210,14 @@
                         callbacks: {
                             label: function(context) {
                                 const rank = data.by_importance[context.dataIndex][1];
-                                return `Average Rank: #${rank.toFixed(1)}`;
+                                return `Avg Rank: #${rank.toFixed(1)}`;
                             }
                         }
                     }
                 },
                 scales: {
-                    x: {
-                        beginAtZero: true,
-                        display: false
-                    }
+                    x: { display: false },
+                    y: { grid: { display: false } }
                 }
             }
         });
@@ -249,25 +227,23 @@
         const tbody = document.getElementById('submissionsTable');
         
         if (submissions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="py-8 text-center text-gray-400">No submissions yet. Share the link with your class!</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" class="py-10 text-center text-apple-gray-300">No submissions yet</td></tr>';
             return;
         }
         
-        tbody.innerHTML = submissions.slice(0, 20).map((sub, i) => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50">
-                <td class="py-3 px-4 text-gray-500">${i + 1}</td>
-                <td class="py-3 px-4 text-gray-600 text-sm">${formatTime(sub.created_at)}</td>
-                <td class="py-3 px-4">
+        tbody.innerHTML = submissions.slice(0, 15).map((sub, i) => `
+            <tr class="border-b border-apple-gray-50">
+                <td class="py-3 px-2 text-apple-gray-400 text-sm">${i + 1}</td>
+                <td class="py-3 px-2 text-apple-gray-400 text-sm">${formatTime(sub.created_at)}</td>
+                <td class="py-3 px-2">
                     <div class="flex flex-wrap gap-1">
                         ${sub.identities.map((id, rank) => `
-                            <span class="inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                            <span class="inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
                                 id.toLowerCase().includes('god') 
-                                    ? 'bg-gold-100 text-gold-700' 
-                                    : rank === 0 
-                                        ? 'bg-sky-100 text-sky-700'
-                                        : 'bg-gray-100 text-gray-600'
+                                    ? 'bg-amber-100 text-amber-700' 
+                                    : 'bg-apple-gray-100 text-apple-gray-600'
                             }">
-                                ${rank + 1}. ${escapeHtml(id)}
+                                ${escapeHtml(id)}
                             </span>
                         `).join('')}
                     </div>
@@ -285,17 +261,15 @@
         }
         
         highlight.classList.remove('hidden');
-        document.getElementById('godHighlightTitle').textContent = capitalize(godData.identity);
-        
         const avgRank = godData.avg_rank;
         let message = '';
         
         if (avgRank <= 1.5) {
-            message = `Amazing! The class ranked "${capitalize(godData.identity)}" as their #1 most important identity on average! 🌟`;
+            message = `"Child of God" was ranked #1 on average — the class understands what matters most.`;
         } else if (avgRank <= 3) {
-            message = `Great news! "${capitalize(godData.identity)}" was ranked in the top 3 most important identities (avg: #${avgRank.toFixed(1)}).`;
+            message = `"Child of God" ranked in the top 3 (avg: #${avgRank.toFixed(1)}). Great discussion opportunity.`;
         } else {
-            message = `"${capitalize(godData.identity)}" was mentioned ${godData.count} time(s) with an average rank of #${avgRank.toFixed(1)}. Consider discussing why this identity is so special!`;
+            message = `"Child of God" was mentioned ${godData.count} time(s) with an average rank of #${avgRank.toFixed(1)}.`;
         }
         
         document.getElementById('godHighlightText').textContent = message;
@@ -316,35 +290,23 @@
         return div.innerHTML;
     }
     
-    // Event listeners
     document.getElementById('refreshBtn').addEventListener('click', loadData);
     
     document.getElementById('resetBtn').addEventListener('click', async () => {
-        if (!confirm('Are you sure you want to clear all submissions? This cannot be undone.')) {
-            return;
-        }
-        
+        if (!confirm('Clear all submissions?')) return;
         try {
             await fetch('/api/reset', { method: 'POST' });
             loadData();
-        } catch (error) {
-            alert('Error clearing data');
-        }
+        } catch (error) {}
     });
     
-    // Set class link
     document.getElementById('classLink').textContent = window.location.origin;
     
     document.getElementById('copyLink').addEventListener('click', () => {
         navigator.clipboard.writeText(window.location.origin);
-        alert('Link copied!');
     });
     
-    // Initial load
     loadData();
-    
-    // Auto-refresh every 30 seconds
     setInterval(loadData, 30000);
 </script>
 {% endblock %}
-
