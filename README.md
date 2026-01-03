@@ -5,29 +5,31 @@ A fun, interactive web app for Sunday school classes to explore and rank their i
 ## Features
 
 - **Student Page**: Kids can add their own identities, drag to reorder by importance, and submit anonymously
-- **Teacher Dashboard**: Password-protected view with charts showing most common identities and average rankings
+- **Teacher Dashboard**: View charts showing most common identities and average rankings
 - **Mobile-Friendly**: Works great on phones and tablets for classroom use
 - **Persistent Storage**: SQLite database keeps submissions across restarts
 - **Real-time Updates**: Dashboard auto-refreshes every 30 seconds
 
+## URLs
+
+| URL | Who Uses It |
+|-----|-------------|
+| `/` | Students - add and rank identities |
+| `/teacher` | Teacher - view class results and visualizations |
+
 ## Quick Start on Replit
 
 1. **Import from GitHub**: Go to Replit and click "Import from GitHub", paste your repo URL
-2. **Set Environment Variables**: In the Replit Secrets tab, add:
-   - `SECRET_KEY`: A random string for session security
-   - `TEACHER_PASSWORD`: The password teachers will use to access the dashboard
-3. **Run**: Click the Run button!
-4. **Share**: Give students the Replit URL, teachers go to `/teacher` to log in
+2. **Run**: Click the Run button!
+3. **Share URLs**: 
+   - Give students the main Replit URL
+   - Teacher goes to the same URL with `/teacher` at the end
 
 ## Local Development
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
-
-# Set environment variables (optional - has defaults)
-export SECRET_KEY="dev-secret"
-export TEACHER_PASSWORD="teacher123"
 
 # Run the app
 python app.py
@@ -44,7 +46,7 @@ Visit `http://localhost:5000` for the student page and `http://localhost:5000/te
 4. Submit when done
 
 ### For Teachers
-1. Go to `/teacher` and log in with your password
+1. Go to `/teacher`
 2. View statistics and charts
 3. See how "Child of God" ranks compared to other identities
 4. Clear data between class sessions with the reset button
@@ -75,7 +77,6 @@ primary-identity/
 │   ├── base.html       # Base template
 │   ├── student.html    # Student identity entry
 │   ├── submitted.html  # Thank you page
-│   ├── teacher_login.html
 │   └── teacher.html    # Teacher dashboard
 ├── requirements.txt
 ├── .replit             # Replit config
@@ -85,4 +86,3 @@ primary-identity/
 ## License
 
 Free to use for educational purposes.
-

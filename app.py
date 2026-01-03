@@ -1,12 +1,10 @@
 import os
 import json
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-from functools import wraps
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import sqlite3
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 DATABASE = 'identities.db'
 
@@ -31,15 +29,6 @@ def init_db():
 
 # Initialize database on startup
 init_db()
-
-def teacher_required(f):
-    """Decorator to require teacher authentication."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('is_teacher'):
-            return redirect(url_for('teacher_login'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 # ============ Student Routes ============
 
@@ -74,36 +63,12 @@ def submitted():
 
 # ============ Teacher Routes ============
 
-@app.route('/teacher/login', methods=['GET', 'POST'])
-def teacher_login():
-    """Teacher login page."""
-    error = None
-    if request.method == 'POST':
-        password = request.form.get('password', '')
-        correct_password = os.environ.get('TEACHER_PASSWORD', 'teacher123')
-        
-        if password == correct_password:
-            session['is_teacher'] = True
-            return redirect(url_for('teacher_dashboard'))
-        else:
-            error = 'Incorrect password'
-    
-    return render_template('teacher_login.html', error=error)
-
-@app.route('/teacher/logout')
-def teacher_logout():
-    """Log out teacher."""
-    session.pop('is_teacher', None)
-    return redirect(url_for('student_page'))
-
 @app.route('/teacher')
-@teacher_required
 def teacher_dashboard():
     """Teacher dashboard with visualizations."""
     return render_template('teacher.html')
 
 @app.route('/api/results')
-@teacher_required
 def get_results():
     """Get all submissions for visualization."""
     conn = get_db()
@@ -168,7 +133,6 @@ def get_results():
     })
 
 @app.route('/api/reset', methods=['POST'])
-@teacher_required
 def reset_data():
     """Clear all submissions."""
     conn = get_db()
