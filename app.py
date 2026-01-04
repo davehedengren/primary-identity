@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory, Response
 import sqlite3
 
 app = Flask(__name__)
@@ -235,6 +235,55 @@ def reset_data():
     conn.close()
     
     return jsonify({'success': True, 'message': 'All data has been cleared'})
+
+@app.route('/api/results/download')
+def download_identities():
+    """Download identity rankings as CSV."""
+    conn = get_db()
+    rows = conn.execute('SELECT * FROM submissions ORDER BY created_at DESC').fetchall()
+    conn.close()
+    
+    # Build CSV
+    lines = ['Submission #,Timestamp,Rank 1,Rank 2,Rank 3,Rank 4,Rank 5,Rank 6,Rank 7,Rank 8,Rank 9,Rank 10']
+    for i, row in enumerate(rows, 1):
+        identities = json.loads(row['identities'])
+        # Pad to 10 columns
+        identities += [''] * (10 - len(identities))
+        # Escape commas and quotes in identities
+        escaped = [f'"{id.replace(chr(34), chr(34)+chr(34))}"' for id in identities[:10]]
+        lines.append(f'{i},{row["created_at"]},' + ','.join(escaped))
+    
+    csv_content = '\n'.join(lines)
+    return Response(
+        csv_content,
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=identity_rankings.csv'}
+    )
+
+@app.route('/api/goals/download')
+def download_goals():
+    """Download goals survey as CSV."""
+    conn = get_db()
+    rows = conn.execute('SELECT * FROM goals ORDER BY created_at DESC').fetchall()
+    conn.close()
+    
+    # Build CSV
+    lines = ['Name,Timestamp,Interesting Fact,2026 Goal,Photo URL']
+    base_url = request.host_url.rstrip('/')
+    
+    for row in rows:
+        name = row['name'].replace('"', '""')
+        fact = row['interesting_fact'].replace('"', '""')
+        goal = row['goal'].replace('"', '""')
+        photo_url = f"{base_url}/uploads/{row['photo_filename']}" if row['photo_filename'] else ''
+        lines.append(f'"{name}",{row["created_at"]},"{fact}","{goal}",{photo_url}')
+    
+    csv_content = '\n'.join(lines)
+    return Response(
+        csv_content,
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=goals_survey.csv'}
+    )
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
