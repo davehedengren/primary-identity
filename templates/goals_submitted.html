@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Thank You{% endblock %}
+
+{% block head %}
+<style>
+    @keyframes checkmark {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .checkmark {
+        animation: checkmark 0.4s ease-out forwards;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+    <div class="text-center max-w-sm">
+        <!-- Checkmark -->
+        <div class="checkmark w-16 h-16 mx-auto mb-6 rounded-full bg-green-500 flex items-center justify-center">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        
+        <h1 class="text-2xl font-semibold text-apple-gray-900 mb-2">Thank You!</h1>
+        <p class="text-apple-gray-400 text-base mb-8">
+            Your goals have been submitted. Here's to a great 2026!
+        </p>
+        
+        <a 
+            href="/goals"
+            class="btn-secondary inline-block px-6 py-3"
+        >
+            Submit Another
+        </a>
+    </div>
+</div>
+{% endblock %}
+
