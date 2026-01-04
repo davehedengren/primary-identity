@@ -8,8 +8,9 @@ channel = "stable-23_05"
 PYTHONPATH = "${PYTHONPATH}:${REPL_HOME}"
 
 [deployment]
+build = ["sh", "-c", "pip install -r requirements.txt"]
 run = ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT app:app"]
-deploymentTarget = "cloudrun"
+deploymentTarget = "autoscale"
 
 [[ports]]
 localPort = 5000
