@@ -29,6 +29,46 @@
         font-weight: 600;
         color: white;
     }
+    
+    /* Flashcard styles */
+    .flashcard-mode {
+        display: none;
+    }
+    .flashcard-mode.active {
+        display: block;
+    }
+    .grid-mode.hidden {
+        display: none;
+    }
+    .flashcard-photo {
+        width: 200px;
+        height: 200px;
+        border-radius: 100px;
+        object-fit: cover;
+        background: #F5F5F7;
+    }
+    .flashcard-initial {
+        width: 200px;
+        height: 200px;
+        border-radius: 100px;
+        background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 5rem;
+        font-weight: 600;
+        color: white;
+    }
+    .name-reveal {
+        min-height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .tap-hint {
+        color: #AEAEB2;
+        font-size: 0.875rem;
+    }
 </style>
 {% endblock %}
 
@@ -42,6 +82,12 @@
                 <p class="text-apple-gray-400" id="countText">Loading...</p>
             </div>
             <div class="flex gap-2">
+                <button 
+                    id="flashcardBtn"
+                    class="btn-primary px-4 py-2 text-sm"
+                >
+                    Flashcards
+                </button>
                 <button 
                     id="refreshBtn"
                     class="btn-secondary px-4 py-2 text-sm"
@@ -57,10 +103,49 @@
             </div>
         </header>
         
-        <!-- Goals Grid -->
-        <div id="goalsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="card p-8 text-center text-apple-gray-300 col-span-full">
-                Loading...
+        <!-- Grid View -->
+        <div id="gridMode" class="grid-mode">
+            <div id="goalsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="card p-8 text-center text-apple-gray-300 col-span-full">
+                    Loading...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Flashcard View -->
+        <div id="flashcardMode" class="flashcard-mode">
+            <div class="card p-8 max-w-sm mx-auto">
+                <div class="flex flex-col items-center text-center">
+                    <div id="flashcardPhoto" class="mb-6"></div>
+                    
+                    <div id="nameReveal" class="name-reveal mb-6">
+                        <p class="tap-hint">Tap to reveal name</p>
+                    </div>
+                    
+                    <div id="flashcardDetails" class="w-full text-left space-y-3 hidden">
+                        <div>
+                            <p class="text-xs font-medium text-apple-gray-400 uppercase tracking-wider mb-1">Interesting fact</p>
+                            <p class="text-sm text-apple-gray-600" id="flashcardFact"></p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-apple-gray-400 uppercase tracking-wider mb-1">2026 Goal</p>
+                            <p class="text-sm text-apple-gray-600" id="flashcardGoal"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <div class="flex items-center justify-between mt-8 pt-6 border-t border-apple-gray-100">
+                    <button id="prevBtn" class="btn-secondary px-4 py-2 text-sm">Previous</button>
+                    <span class="text-apple-gray-400 text-sm" id="cardCounter">1 / 1</span>
+                    <button id="nextBtn" class="btn-secondary px-4 py-2 text-sm">Next</button>
+                </div>
+            </div>
+            
+            <div class="text-center mt-6">
+                <button id="exitFlashcards" class="text-apple-blue text-sm font-medium">
+                    Exit Flashcards
+                </button>
             </div>
         </div>
         
@@ -82,44 +167,97 @@
 
 {% block scripts %}
 <script>
+    let goals = [];
+    let currentIndex = 0;
+    let nameRevealed = false;
+    
     async function loadGoals() {
         try {
             const response = await fetch('/api/goals/list');
             const data = await response.json();
             
+            goals = data.goals;
             document.getElementById('countText').textContent = `${data.total} response${data.total !== 1 ? 's' : ''}`;
             
-            const grid = document.getElementById('goalsGrid');
-            
-            if (data.goals.length === 0) {
-                grid.innerHTML = '<div class="card p-8 text-center text-apple-gray-300 col-span-full">No submissions yet</div>';
-                return;
+            renderGrid();
+            if (goals.length > 0) {
+                renderFlashcard();
             }
-            
-            grid.innerHTML = data.goals.map(goal => `
-                <div class="card p-5 profile-card">
-                    ${goal.photo_filename 
-                        ? `<img src="/uploads/${goal.photo_filename}" class="profile-photo mb-3" alt="${escapeHtml(goal.name)}">`
-                        : `<div class="profile-initial mb-3">${goal.name.charAt(0).toUpperCase()}</div>`
-                    }
-                    <h3 class="text-lg font-semibold text-apple-gray-900 mb-3">${escapeHtml(goal.name)}</h3>
-                    
-                    <div class="w-full text-left space-y-3">
-                        <div>
-                            <p class="text-xs font-medium text-apple-gray-400 uppercase tracking-wider mb-1">Interesting fact</p>
-                            <p class="text-sm text-apple-gray-600">${escapeHtml(goal.interesting_fact)}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium text-apple-gray-400 uppercase tracking-wider mb-1">2026 Goal</p>
-                            <p class="text-sm text-apple-gray-600">${escapeHtml(goal.goal)}</p>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
             
         } catch (error) {
             console.error('Error loading goals:', error);
         }
+    }
+    
+    function renderGrid() {
+        const grid = document.getElementById('goalsGrid');
+        
+        if (goals.length === 0) {
+            grid.innerHTML = '<div class="card p-8 text-center text-apple-gray-300 col-span-full">No submissions yet</div>';
+            return;
+        }
+        
+        grid.innerHTML = goals.map(goal => `
+            <div class="card p-5 profile-card">
+                ${goal.photo_filename 
+                    ? `<img src="/uploads/${goal.photo_filename}" class="profile-photo mb-3" alt="${escapeHtml(goal.name)}">`
+                    : `<div class="profile-initial mb-3">${goal.name.charAt(0).toUpperCase()}</div>`
+                }
+                <h3 class="text-lg font-semibold text-apple-gray-900 mb-3">${escapeHtml(goal.name)}</h3>
+                
+                <div class="w-full text-left space-y-3">
+                    <div>
+                        <p class="text-xs font-medium text-apple-gray-400 uppercase tracking-wider mb-1">Interesting fact</p>
+                        <p class="text-sm text-apple-gray-600">${escapeHtml(goal.interesting_fact)}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-apple-gray-400 uppercase tracking-wider mb-1">2026 Goal</p>
+                        <p class="text-sm text-apple-gray-600">${escapeHtml(goal.goal)}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function renderFlashcard() {
+        if (goals.length === 0) return;
+        
+        const goal = goals[currentIndex];
+        nameRevealed = false;
+        
+        // Photo
+        const photoDiv = document.getElementById('flashcardPhoto');
+        if (goal.photo_filename) {
+            photoDiv.innerHTML = `<img src="/uploads/${goal.photo_filename}" class="flashcard-photo" alt="Photo">`;
+        } else {
+            photoDiv.innerHTML = `<div class="flashcard-initial">${goal.name.charAt(0).toUpperCase()}</div>`;
+        }
+        
+        // Reset name reveal
+        document.getElementById('nameReveal').innerHTML = '<p class="tap-hint">Tap to reveal name</p>';
+        document.getElementById('flashcardDetails').classList.add('hidden');
+        
+        // Details (hidden until revealed)
+        document.getElementById('flashcardFact').textContent = goal.interesting_fact;
+        document.getElementById('flashcardGoal').textContent = goal.goal;
+        
+        // Counter
+        document.getElementById('cardCounter').textContent = `${currentIndex + 1} / ${goals.length}`;
+        
+        // Button states
+        document.getElementById('prevBtn').disabled = currentIndex === 0;
+        document.getElementById('nextBtn').disabled = currentIndex === goals.length - 1;
+    }
+    
+    function revealName() {
+        if (nameRevealed || goals.length === 0) return;
+        nameRevealed = true;
+        
+        const goal = goals[currentIndex];
+        document.getElementById('nameReveal').innerHTML = `
+            <h2 class="text-2xl font-semibold text-apple-gray-900">${escapeHtml(goal.name)}</h2>
+        `;
+        document.getElementById('flashcardDetails').classList.remove('hidden');
     }
     
     function escapeHtml(text) {
@@ -128,6 +266,7 @@
         return div.innerHTML;
     }
     
+    // Event listeners
     document.getElementById('refreshBtn').addEventListener('click', loadGoals);
     
     document.getElementById('resetBtn').addEventListener('click', async () => {
@@ -136,6 +275,54 @@
             await fetch('/api/goals/reset', { method: 'POST' });
             loadGoals();
         } catch (error) {}
+    });
+    
+    document.getElementById('flashcardBtn').addEventListener('click', () => {
+        if (goals.length === 0) {
+            alert('No submissions yet');
+            return;
+        }
+        currentIndex = 0;
+        renderFlashcard();
+        document.getElementById('gridMode').classList.add('hidden');
+        document.getElementById('flashcardMode').classList.add('active');
+    });
+    
+    document.getElementById('exitFlashcards').addEventListener('click', () => {
+        document.getElementById('flashcardMode').classList.remove('active');
+        document.getElementById('gridMode').classList.remove('hidden');
+    });
+    
+    document.getElementById('nameReveal').addEventListener('click', revealName);
+    document.getElementById('flashcardPhoto').addEventListener('click', revealName);
+    
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderFlashcard();
+        }
+    });
+    
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        if (currentIndex < goals.length - 1) {
+            currentIndex++;
+            renderFlashcard();
+        }
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (!document.getElementById('flashcardMode').classList.contains('active')) return;
+        
+        if (e.key === 'ArrowLeft' && currentIndex > 0) {
+            currentIndex--;
+            renderFlashcard();
+        } else if (e.key === 'ArrowRight' && currentIndex < goals.length - 1) {
+            currentIndex++;
+            renderFlashcard();
+        } else if (e.key === ' ' || e.key === 'Enter') {
+            revealName();
+        }
     });
     
     document.getElementById('surveyLink').textContent = window.location.origin + '/goals';
@@ -147,4 +334,3 @@
     loadGoals();
 </script>
 {% endblock %}
-
